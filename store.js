@@ -9,6 +9,8 @@ let cartTemplateHTML =
     <button class="btn btn-danger" type="button">REMOVE</button>
 </div>`;
 
+let format = new Intl.NumberFormat('en-us', {style: 'currency', currency: 'USD'})
+
 let cart = document.getElementsByClassName("cart-items")[0];
 let itemList = cart.children;
 
@@ -114,18 +116,18 @@ function storeValue(item)
 
 function updatePrice(quantityField)
 {
-    if(quantityField.value <= 0)
+    if(quantityField.value <= 0 || isNaN(quantityField.value))
     {
-        quantityField.value = oldValue;
+        quantityField.value = quantityField.oldValue;
         return;
     }
     
     let priceField = quantityField.parentNode.parentNode.getElementsByClassName("cart-price")[0]
-    let previousTotal = Number(priceField.innerText.slice(1))
+    let previousTotal = Number(priceField.innerText.slice(1).split(',').join(''))
 
     let newTotal = (previousTotal/quantityField.oldValue)*quantityField.value
     
-    priceField.innerText = (`$${newTotal}`).slice(0,7);
+    priceField.innerText = format.format(newTotal);
     quantityField.oldValue = quantityField.value
 
     updateCartTotal();
@@ -137,11 +139,11 @@ function updateCartTotal()
     let totalPrice = 0
     for(let i = 0; i<itemList.length; i++)
     {
-        let itemPrice = Number(itemList[i].getElementsByClassName("cart-price")[0].innerText.slice(1))
+        let itemPrice = Number(itemList[i].getElementsByClassName("cart-price")[0].innerText.slice(1).split(`,`).join(''))
         totalPrice += itemPrice;
     }
 
-    totalPriceField.innerText = (`$${totalPrice}`).slice(0,6);
+    totalPriceField.innerText = format.format(totalPrice);
 }
 
 function clearCart()
