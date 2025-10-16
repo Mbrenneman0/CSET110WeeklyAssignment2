@@ -12,7 +12,6 @@ let cartTemplateHTML =
 let cart = document.getElementsByClassName("cart-items")[0];
 let itemList = cart.children;
 
-
 let addToCartBtns = document.getElementsByClassName("shop-item-button");
 
 //add onclick function to each shop item on the page:
@@ -25,6 +24,26 @@ for(let i = 0; i < addToCartBtns.length; i++)
 for(let i = 0; i < itemList.length; i++)
 {
     itemList[i].getElementsByClassName("btn-danger")[0].onclick = () => {removeItem(itemList[i])};
+}
+
+//add onclick to purchase button
+document.getElementsByClassName("btn-purchase")[0].onclick = () => {clearCart()};
+
+//add onfocus and onchange to quantities in cart
+for(let i = 0; i < itemList.length; i++)
+{
+    let itemQuantity = itemList[i].getElementsByClassName("cart-quantity-input")[0]
+    itemQuantity.onfocus = () => {storeValue(itemQuantity)}
+    itemQuantity.onchange = () => {updatePrice(itemQuantity)}
+}
+
+//set initial cart prices based on initial quantities
+for(let i = 0; i<itemList.length; i++)
+{
+    let price = Number(itemList[i].getElementsByClassName("cart-price")[0].innerText.slice(1))
+    let quantity = Number(itemList[i].getElementsByClassName("cart-quantity-input")[0].value)
+    let totalPrice = price * quantity;
+    itemList[i].getElementsByClassName("cart-price")[0].innerText = `$${totalPrice}`
 }
 
 function addToCart(item)
@@ -51,9 +70,13 @@ function addToCart(item)
     newCartItem.getElementsByClassName("cart-item-image")[0].src = itemImg;
 
     newCartItem.getElementsByClassName("btn-danger")[0].onclick = () => {removeItem(newCartItem)};
+    let itemQuantity = newCartItem.getElementsByClassName("cart-quantity-input")[0]
+    itemQuantity.onfocus = () => {storeValue(itemQuantity)}
+    itemQuantity.onchange = () => {updatePrice(itemQuantity)}
 
     cart.appendChild(newCartItem);
-    console.log(itemList);
+    updateCartTotal()
+
 }
 
 function isInCart(item)
@@ -81,4 +104,51 @@ function removeItem(item)
     {
         itemList[i].getElementsByClassName("btn-danger")[0].onclick = () => {removeItem(itemList[i])};
     }
+    updateCartTotal()
+}
+
+function storeValue(item)
+{
+    item.oldValue = item.value;
+}
+
+function updatePrice(quantityField)
+{
+    if(quantityField.value <= 0)
+    {
+        quantityField.value = oldValue;
+        return;
+    }
+    
+    let priceField = quantityField.parentNode.parentNode.getElementsByClassName("cart-price")[0]
+    let previousTotal = Number(priceField.innerText.slice(1))
+
+    let newTotal = (previousTotal/quantityField.oldValue)*quantityField.value
+    
+    priceField.innerText = (`$${newTotal}`).slice(0,7);
+    quantityField.oldValue = quantityField.value
+
+    updateCartTotal();
+}
+
+function updateCartTotal()
+{
+    let totalPriceField = document.getElementsByClassName("cart-total-price")[0];
+    let totalPrice = 0
+    for(let i = 0; i<itemList.length; i++)
+    {
+        let itemPrice = Number(itemList[i].getElementsByClassName("cart-price")[0].innerText.slice(1))
+        totalPrice += itemPrice;
+    }
+
+    totalPriceField.innerText = (`$${totalPrice}`).slice(0,6);
+}
+
+function clearCart()
+{
+    for(let i = itemList.length-1; i>=0; i--)
+    {
+        itemList[i].remove();
+    }
+    updateCartTotal();
 }
